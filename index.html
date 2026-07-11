@@ -240,19 +240,19 @@ const STAGES = [
     "##################WWWWWW##########WWWWWfWWWWW########WWWWWWW##WWWWWWWW##WWWWWWWW##WWWWWWW###########WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWW###############WWWWWWWWWWWWWWW##WWWWWWWWWWWWWWW#######################",
     "#######################################################################################################################################################################################################################",
   ] },
-  { id: "2-1", title: "모래 협곡", zone: 1, map: [
+  { id: "2-1", title: "가라앉는 모래", zone: 1, map: [
     "",
     "",
     "",
-    "",
-    "                        oo        oo",
-    "                                                                     o",
-    "                                                                    o o            oo",
-    "                m e    o  o      o  o       j",
-    "                #######    ######    ##",
-    " P tZ G      ##########    ######    ##  ue    e    e    e  e C    o   o     e    o  o      tF",
-    "#######################    ######    ##############################     ##########    ########",
-    "#######################    ######    ##############################     ##########    ########",
+    "                                                                                                                                            ###",
+    "                                                                                                                          ###               ###                            ###",
+    "                                                                  b              b                                        ###               ###               b            ###",
+    "                                                                                                                          ###               ###                            ###",
+    "                                                    o            oo              o               oo                       ###               ###           oo               ###",
+    "                      oo                           o o          o  o           o   o            o  o                      ###               ###          o  o              ###                 oooo         F",
+    "  P   Y   u   K     qqqqqq   e   qqoqqq    N   e   qqq    s     qqqq   e   e C qqqqq    m   e   qqqq    s    C      qqqqqqqqqqqqqqqq j  qqqqqqqqqqqq C e qqqq    s     qqqqqqqqqqqq    e  s           N",
+    "####################qqqqqq#######qqqoqq############qqq##########qqqq###########qqqqq############qqqq################qqqoqqqoqqqoqqqq####qqoqqkqqoqqq#####qqqq##########qqoqqpqqqoqq###############################",
+    "###################################################   ##########    ###########     ############    #####################################################    #####################################################",
   ] },
   { id: "2-2", title: "무너지는 다리", zone: 1, map: [
     "",
@@ -517,6 +517,7 @@ const SFX = {
 let solids = [];
 let coins = [], slimes = [], birds = [], carrots = [], trees = [], waters = [];
 let fishes = [], waterPlants = []; // 물고기 적 + 수초 장식
+let quicksands = [], quickSet = new Set(); // 모래늪(유사): 빠지면 서서히 가라앉아요!
 let ladders = [], ladderSet = new Set();
 let swimCells = [], swimSet = new Set();
 let springs = [], platforms = [], crumbles = [], crumbleMap = new Map(), checkpoints = [];
@@ -554,6 +555,7 @@ function parseLevel() {
 
   solids = []; coins = []; slimes = []; birds = []; carrots = []; trees = []; waters = [];
   fishes = []; waterPlants = [];
+  quicksands = []; quickSet = new Set();
   ladders = []; ladderSet = new Set(); swimCells = []; swimSet = new Set();
   springs = []; platforms = []; crumbles = []; crumbleMap = new Map(); checkpoints = [];
   decors = []; cacti = []; runes = []; skies = [];
@@ -603,6 +605,8 @@ function parseLevel() {
       if (ch === "Y") npcs.push({ x: px, y: py, kind: "merchant", anim: 40, text: "X키로 무기를 쓰시오! 코인도 모으고." });
       if (ch === "t") trees.push({ x: px, bottom: py + TILE, zone: zoneAt(tx), kind: hash(tx * 37) % 8 });
       if (ch === "w") waters.push({ tx, ty });
+      // 모래늪: 밟으면 서서히 가라앉는 위험한 모래 (사막 월드의 명물!)
+      if (ch === "q") { quicksands.push({ tx, ty }); quickSet.add(tx + "," + ty); }
       if (ch === "L") { ladders.push({ tx, ty }); ladderSet.add(tx + "," + ty); }
       if (ch === "W") { swimCells.push({ tx, ty }); swimSet.add(tx + "," + ty); }
       if (ch === "S") springs.push({ x: px, y: py, anim: 0 });
@@ -716,6 +720,8 @@ function resetPlayer() {
   player.atkPose = 0;
   player.weapon = "basic"; // 무기: basic(구슬)/rifle(연사)/sword(근접)/spear(관통)
   player.meleeT = 0;       // 검 휘두르는 순간 판정 타이머
+  player.inSand = false;   // 모래늪에 빠졌나?
+  player.sandCd = 0;       // 모래늪 발버둥 점프 쿨타임
 }
 
 
@@ -730,6 +736,7 @@ function solidAt(px, py) {
 
 function ladderAt(px, py) { return ladderSet.has(Math.floor(px / TILE) + "," + Math.floor(py / TILE)); }
 function swimAt(px, py) { return swimSet.has(Math.floor(px / TILE) + "," + Math.floor(py / TILE)); }
+function sandAt(px, py) { return quickSet.has(Math.floor(px / TILE) + "," + Math.floor(py / TILE)); }
 
 // 주의: 폭이 w인 몸은 픽셀 x ~ x+w-1 까지만 차지해요 (그래서 w-1, h-1)
 function rectHitsSolid(x, y, w, h) {
@@ -786,13 +793,21 @@ function updatePlayer() {
   const cx = player.x + player.w / 2;
   const cy = player.y + player.h / 2;
   const wasInWater = player.inWater;
+  const wasInSand = player.inSand;
   player.inWater = swimAt(cx, cy);
+  player.inSand = sandAt(cx, cy);
   const jumpKey = keys.Space || keys.ArrowUp || keys.KeyW;
 
   if (!wasInWater && player.inWater && player.vy > 1) {
     SFX.splash();
     spawnSparkle(cx, player.y, "#6fb9ff");
     player.vy *= 0.3;
+  }
+  // 모래늪에 풍덩! 떨어지던 속도가 확 죽어요 (모래는 무거우니까)
+  if (!wasInSand && player.inSand && player.vy > 1) {
+    SFX.crack();
+    spawnSparkle(cx, player.y + player.h, "#d8b24a");
+    player.vy *= 0.15;
   }
 
   if (!player.climbing && ladderAt(cx, cy) && (keys.ArrowUp || keys.ArrowDown)) {
@@ -837,6 +852,28 @@ function updatePlayer() {
     }
     player.vy = Math.min(player.vy + GRAVITY * 0.28, 1.2);
     moveBody(player);
+
+  } else if (player.inSand) {
+    // ===== 모래늪 모드: 몸이 무거워요! 서서히 가라앉아요 =====
+    let want = 0;
+    if (keys.ArrowLeft || keys.KeyA) want = -0.55;   // 모래 속에선 아주 느리게
+    if (keys.ArrowRight || keys.KeyD) want = 0.55;
+    player.vx += Math.sign(want - player.vx) * Math.min(0.07, Math.abs(want - player.vx));
+    if (want !== 0) player.face = Math.sign(want);
+
+    player.sandCd = Math.max(0, player.sandCd - 1);
+    if (jumpKey && player.sandCd === 0) {
+      // 몸이 표면 근처면 힘차게 탈출 점프! 깊이 잠겼으면 꿈틀거리기만...
+      const nearSurface = !sandAt(cx, player.y - 2);
+      player.vy = nearSurface ? -4.8 : -1.2;
+      player.sandCd = 16;
+      SFX.crack();
+      spawnSparkle(cx, player.y + player.h, "#d8b24a");
+    }
+    // 가만히 있으면 계속 가라앉아요 (최대 속도는 느리게)
+    player.vy = Math.min(player.vy + 0.1, 0.4);
+    moveBody(player);
+    player.anim += 0.05;
 
   } else {
     // ===== 일반 모드 =====
@@ -1469,6 +1506,24 @@ function draw() {
     drawSprite(IMG.pwater, baseX + fr * 16, SPR.waterPlant.y, wp.x - cam, wp.y);
   }
 
+  // 5.7) 모래늪(유사): 일반 모래보다 밝은 색 + 표면이 스멀스멀 움직여요
+  for (const q of quicksands) {
+    const qx = q.tx * TILE - cam, qy = q.ty * TILE;
+    ctx.fillStyle = "#8a6f35";
+    ctx.fillRect(qx, qy, TILE, TILE);
+    // 표면 칸(위가 모래늪이 아닌 칸)엔 흐르는 물결 점 애니메이션
+    if (!quickSet.has(q.tx + "," + (q.ty - 1))) {
+      ctx.fillStyle = "#d8b24a";
+      const shift = Math.floor(game.time / 12) % 8;
+      for (let dx = ((q.tx * 5 + shift) % 8); dx < TILE; dx += 8) ctx.fillRect(qx + dx, qy, 4, 2);
+      ctx.fillStyle = "#bb954040";
+    } else {
+      // 깊은 칸엔 어두운 점 (깊이감)
+      ctx.fillStyle = "#6f5828";
+      ctx.fillRect(qx + (q.tx % 2) * 8 + 3, qy + 6, 3, 3);
+    }
+  }
+
   // 6) 헤엄칠 물
   const waveShift = Math.floor(game.time / 20) % 4;
   for (const w of swimCells) {
@@ -1691,6 +1746,14 @@ function draw() {
     else if (Math.abs(player.vx) > 0.3) [sx, sy] = set.walk[Math.floor(player.anim) % 4];
     else [sx, sy] = set.idle[Math.floor(game.time / 40) % 2];
     drawSprite(IMG.player, sx, sy, player.x - 3 - cam, player.y + player.h - 16, player.face < 0);
+  }
+
+  // 21.3) 모래늪 반투명 덧칠: 플레이어가 모래에 '잠겨' 보이게 (플레이어 그린 뒤에!)
+  if (quicksands.length) {
+    ctx.globalAlpha = 0.55;
+    ctx.fillStyle = "#8a6f35";
+    for (const q of quicksands) ctx.fillRect(q.tx * TILE - cam, q.ty * TILE, TILE, TILE);
+    ctx.globalAlpha = 1;
   }
 
   // 21.5) 검 휘두르기 이펙트 (흰 호가 앞에서 번쩍)
