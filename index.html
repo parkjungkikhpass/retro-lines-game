@@ -42,7 +42,7 @@
 
   <p class="help">
     <b>←→</b> 이동 &nbsp;|&nbsp; <b>Shift</b> 달리기! &nbsp;|&nbsp; <b>스페이스</b> 점프/수영 &nbsp;|&nbsp; <b>X</b> 공격 &nbsp;|&nbsp;
-    <b>↑↓</b> 사다리 &nbsp;|&nbsp; 🥕 커지기 &nbsp;|&nbsp; 👹 보스를 잡아야 깃발!
+    <b>↑↓</b> 사다리 &nbsp;|&nbsp; <b>ESC</b> 메뉴 &nbsp;|&nbsp; 🥕 커지기 &nbsp;|&nbsp; 👹 보스를 잡아야 깃발!
   </p>
 
   <!-- 게임 로직은 별도 파일에 있어요.
@@ -1840,6 +1840,16 @@ function drawStageSelect() {
 function gameLoop() {
   game.time++;
   game.stateT = (game.stateT || 0) + 1; // 지금 상태가 몇 프레임째인지
+
+  // ESC 키: 게임 중 언제든 스테이지 선택 화면으로 돌아가요
+  // (커서는 방금 하던 스테이지에 놓여서 바로 다시 도전 가능!)
+  if (keys.Escape && game.state !== "title") {
+    keys.Escape = false;          // 한 번만 처리 (꾹 눌러도 반복 안 되게)
+    checkpoint = null;            // 체크포인트 초기화
+    game = { state: "title", score: 0, lives: 3, coinCount: 0, camX: 0,
+             time: game.time, shake: 0, stateT: 0, sel: stageIndex };
+    parseLevel();                 // 지금 스테이지를 배경 그림용으로 다시 준비
+  }
 
   if (game.state === "title") {
     // ===== 스테이지 선택 화면: 화살표로 고르고 스페이스로 시작! =====
