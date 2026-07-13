@@ -296,17 +296,17 @@ const STAGES = [
     "#####################     ########   ###   ###############     #########     ##########WWWW########",
     "#####################     ########   ###   ###############     #########     ######################",
   ] },
-  { id: "3-2", title: "심해 물고기떼", zone: 2, map: [
+  { id: "3-2", title: "심해 물고기떼", zone: 2, noShoot: true, map: [
     "############################################################################################################################################################################################################################",
     "############################################################################################################################################################################################################################",
-    "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWoW##WWfWWWWWWWWWWWWWo#WWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWoWWWfWWW##WWWWWW###############WWWWWWWWWWWoWWWWWfWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWWWWWWWWjWWWWWWWWWWWWWWWWW##WWWWfWWWWWWoWWWW##WWWWWWWWWWWWWoWW##WWfWWWWWWWWWWoWW##WWWWWWWWWWWWWWWW##WWWWWWoWWWWWfWWWWW##WWWWWW###############WWWWWfWWWWWWWWWWWWWWWWWWWfWWWWWoWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWWWfWWW##WWWWWWWWWWWWWWWW##WWWWfWWWWWWWWWWW##WWWWWWWWWWWWWWWWWW##WWWWWW###############WWWWWWWWWWWWfWWWWWWWWoWWWWWWWWWWWfWWWWWWWWWWWWWWWWWooWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWfWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWjWWWfW##WWWWWWWWWWWWWWWW##WWWWWWWW##WWWWWWWW##WWWWWpWWfWWWWofWWWWWWWWWWWWoWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWWfWCWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWoWWWoWWWoWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWCWWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWW##WWWWWWWW##WWWWCWWWWoWWfWWWWWfWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWfWWWWoWWWWWWWWWWWWWWWWWWWWWWWWW",
-    "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWo##WWWWWWWWWWWWofWW##WWWWWWWWWWWWWWWo##WWWWWWWWWWWfWWWW##WWWWWWW##WWWWWWWW##WWWWWWWW##WWWWWWWWWWfWWWWWfoWWWWWWWWWWWWWWWWWfWWWWWWWWWWWoWWWWWWWWWWWWWWWWW#WWW#WWWWWWWWWWWW",
-    "WWWWWWJWWWuWWWWfWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWofWWWW##WWWWWWWWWWWWWWWo##WWWWWfWWWWWWoWWW##WWWWWWWWWWWWoWWW##WWWWWWW##WWWWWWWW##WWWWWWWW##WWWWWW###############WWWWWWWWWWWWWWWWoWWfWWWWWWWWWWWWWWWWfWWWWWWW#WfW#WWWWWWWFWWWW",
-    "WWPWWWWWWWWWWWWWoWWWoWWWoWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWfWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWfWWWWWWWWWWWW##WWWWWoWWWWWfWWWWW##WWWWWWoWWWWWfWWW###############WWWWWWWWWfWWWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWW#WkW#WWWWW#####WW",
+    "WWWWWWWWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWWWWW##WfWWWWWWWWWWWWoW##WWfWWWWWWWfWWWpWo#WWWWWWfWWWWWWWWW##WWWWWWWWWWWWWWWW##WfWWWWWWWWoWWWfWWW##WWWWWW###############WWWWWWWWfWWoWWWWWfWW#WWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWfWWWWWWWWWWWWWWWWjWfW##WWWWWWWWWWWW##WWWWfWWWWWWoWWWW##WWWWfWWWWWWWWoWW###WfWWWWWWWWWWoWW##WWWWWWWWWWWWWfWW##WWWWWWoWWWWWfWWWWW##WWWWWW###############WWWWWfWWWWWWWWWWfWWW#WWWWfWWWWWoWWWWW#WWWWWfWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWfWWWWWWWW##WWWWWWWfWWWW##WWWWWWWWWW#WWWfW##WWWWWWWWWWWWfWWW###WWWWWWWfWWWWWWW####WWfWWWWWWWWWWW##WWWWWWWWWWWWWWWWfW##WWWWWW###############WWWWWWWW#WWWfWWWWWWWWoWWfWWWWWWWWfWWW#WWWWWWWWWfWWWooWWWWWWWW",
+    "WWWWWWWWWWWW##WWWWWWWWWfWWWWWWWWWWWfWWWWWWWW##WWWWWWfWWW#WWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWjWWWfW####WWWWWWWWWWWWWW##WWWWWWfW##WWWW##WW##WWWWWpWWfWWfWofWWWWfWWWWWWWoW#WWfWWWWWWWWWWfWWWWWWWWWWWWWWfWfWCWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWW##oWWWoWWWoWWWWWWWWWWfWWWWWWWWWWWWWWWWWWWWWWWWfWWWWW##WWWWfWWWCWWWWWWWWWWWfWWWWWWWWWWWWWfWWWWWWWWWWWWWWf##WW##WWWW##WWWW##WW##WfWWCWWfWoWWfWWfWWfWWWWWWWWWfWWWWWWWWWWfWWWWWWWWW#WfWWWWoWWWWWWWWWWWWWWfWWWWWWWWWW",
+    "WWWWWWWWWWWWfWWWWWWWWWWWWWWWWfWWWWWW##WWWWWWWWWWWWWWo##WfWWWWWWW##WofWW##WWWWWWWWWfWWWWWo##W##WWWWWWWWfWWWW##WWWWWWW##WW##WWWW##WfWWWWWW##WWWWWWWWWWfWWfWWfoWWWWWWWfWWWWWWWWWf#WWWWWWWWWWoW#fWWWWWWWWWWWWWW#WWW#WWfWWWWWWWWW",
+    "WWWWWWoWWWuWWWWfWWWWWWWWWWWWWWWfWWWW##WWWWWWWWWofWWWW##WWWWWWWWWfWWWWWo##WWWWWfWWWWWWoWWW##W##WWfWWWWWWoWWW##WWWWWWW##WWWWWWWW##WWWWWWWW##WWWWWW###############WWWWWWWWWWWWWfW#oWWfWWWWWWWWWWWWWWWWfWWWfWWW#WfW#WWWWWWWFWWWW",
+    "WWPWWWWWWWWWWWWWoWWfoWWWoWWWWWWWWWWWWfWWWWWWWWWWWfWWW##WWWWWfWWWWWWWWWW##WWWfWWWWWWWWWWWW##WWWfWWWWWWWWWWfW##WWWWWoWWWWWfWWWWW##WWWWWWoWWWWWfWWW###############WWWWWWWWWfWWWWWWWWWWWfWWWWWfWWWWWWWWWWWWWWWW#WkW#WWWWW#####WW",
     "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWWWWWWWW##WWWWWWWWWoWWWfWWW##WWWWWWWWWWoWWWWW###############WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW#WWW#WWWWW#####WW",
     "############################################################################################################################################################################################################################",
   ] },
@@ -592,7 +592,7 @@ function parseLevel() {
           x: px + 1, y: py + 3, x0: px + 1, y0: py + 3, w: 14, h: 10,
           dir: -1, vdir: 1, alive: true, anim: 0, t: hash(tx * 61) % 100,
           vert: hash(tx * 13 + ty * 7) % 3 === 0,          // 1/3은 세로 순찰!
-          spd: 0.25, maxSpd: 0.7 + (hash(tx * 29) % 25) / 100, // 최고속도 제각각
+          spd: 0.25, maxSpd: 0.85 + (hash(tx * 29) % 35) / 100, // 최고속도 제각각(더 빠르게!)
         });
         swimCells.push({ tx, ty }); swimSet.add(tx + "," + ty);
       }
@@ -974,7 +974,8 @@ function updatePlayer() {
   player.shootCd = Math.max(0, player.shootCd - 1);
   player.atkPose = Math.max(0, player.atkPose - 1);
   player.meleeT = Math.max(0, player.meleeT - 1);
-  if ((keys.KeyX || keys.KeyZ) && player.shootCd === 0 && !player.climbing) {
+  // noShoot 스테이지(심해)에선 공격 불가 - 오직 회피 실력만!
+  if ((keys.KeyX || keys.KeyZ) && player.shootCd === 0 && !player.climbing && !STAGES[stageIndex].noShoot) {
     if (player.weapon === "sword") {
       // 검: 발사체 없이 앞쪽을 크게 휘둘러 근접 처치 (연타 빠름)
       player.meleeT = 10;
@@ -1288,18 +1289,21 @@ function updateBirds() {
 function updateFishes() {
   for (const f of fishes) {
     if (!f.alive) continue;
-    f.anim += 0.1 + f.spd * 0.15; // 빨리 헤엄칠수록 지느러미도 빨리!
-    f.spd = Math.min(f.spd + 0.008, f.maxSpd); // 가속!
+    f.spd = Math.min(f.spd + 0.015, f.maxSpd); // 가속! (더 빨리 붙어요)
+    // 불규칙 돌진: 물고기마다 제각각의 박자로 갑자기 확! 튀어나가요 (패턴 읽기 어렵게)
+    const burst = ((game.time + f.t * 3) % 100) < 28 ? 1.9 : 1;
+    const v = f.spd * burst;
+    f.anim += 0.1 + v * 0.15; // 빨리 헤엄칠수록 지느러미도 빨리!
 
     if (f.vert) {
-      // ===== 세로 순찰: 위아래로 오르내리며 가속 =====
-      f.y += f.spd * f.vdir;
+      // ===== 세로 순찰: 위아래로 오르내리며 가속+돌진 =====
+      f.y += v * f.vdir;
       const aheadY = f.vdir < 0 ? f.y - 1 : f.y + f.h + 1;
       if (!swimAt(f.x + f.w / 2, aheadY)) { f.vdir = -f.vdir; f.spd = 0.25; }
       f.x = f.x0 + Math.sin((game.time + f.t) / 30) * 2; // 좌우로 살랑살랑
     } else {
-      // ===== 가로 순찰: 좌우로 오가며 가속 =====
-      f.x += f.spd * f.dir;
+      // ===== 가로 순찰: 좌우로 오가며 가속+돌진 =====
+      f.x += v * f.dir;
       const aheadX = f.dir < 0 ? f.x - 1 : f.x + f.w + 1;
       if (!swimAt(aheadX, f.y + f.h / 2)) { f.dir = -f.dir; f.spd = 0.25; }
       f.y = f.y0 + Math.sin((game.time + f.t) / 25) * 2; // 둥실둥실
