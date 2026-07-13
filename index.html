@@ -254,33 +254,33 @@ const STAGES = [
     "####################qqqqqq#######qqqoqq############qqq##########qqqq###########qqqqq############qqqq################qqqoqqqoqqqoqqqq####qqoqqkqqoqqq#####qqqq##########qqoqqpqqqoqq###############################",
     "###################################################   ##########    ###########     ############    #####################################################    #####################################################",
   ] },
-  { id: "2-2", title: "무너지는 다리", zone: 1, map: [
+  { id: "2-2", title: "분노한 태양", zone: 1, map: [
+    "",
+    "     A",
     "",
     "",
     "",
     "",
     "",
-    "                  oo                                             o",
-    "                              o                                 o o           oo",
-    "                             o o         j",
-    "                 o  o e     !!!!!!   e",
-    " P tY G      ####    #######      #### C     em   e       e    o   o    e    o  o      tF",
-    "#################    #######      #############################     #########    ########",
-    "#################    #######      #############################     #########    ########",
+    "",
+    "                     oo                oo                oo               oo              j                           oo              oo              oo        oo              oo                          F",
+    "  P   Z   u   G     ####      e       ####      e     C o  o      s      o  o     e             s      C        N             e                 e            C o  o     p      o  o           u     N",
+    "########################################################    #############    ##################################################################################    ############    ###############################",
+    "########################################################    #############    ##################################################################################    ############    ###############################",
   ] },
-  { id: "2-3", title: "오아시스", zone: 1, map: [
+  { id: "2-3", title: "회오리 오아시스", zone: 1, map: [
     "",
     "",
     "",
+    "                                                                                                                                 o o              ko",
+    "                            o                                                                                                  o     o           ####",
+    "                          o   o",
     "",
     "",
-    "                                      j                  o             o",
-    "           oo                                           o o           o o",
-    "                                e m  e   ee    ee",
-    "                               ##################",
-    " P tN G   o  o  m  WWWWWWWW  u ################## C    o   o    e    o   o      tF",
-    "##########    #####WWWWWWWW############################     #########     ########",
-    "##########    #########################################     #########     ########",
+    "                                               o                      o  o                o                                                                         o                      o  o f           ooo   F",
+    "  P   Y   u   J         T           e    N    o o     s    T      t WWWfWWWW  t   e   C  o o      s     T     e   C   Z    T          j       T         C          o o    T     e   s  t WWWfWWWWWW  t   N",
+    "##############################################   ############   ####WWWWWWWW#############   #################################       ###############################   ###################WWWWWWWWWW####################",
+    "##############################################   ############   #########################   #################################       ###############################   #################################################",
   ] },
   { id: "3-1", title: "달빛 절벽", zone: 2, map: [
     "",
@@ -518,6 +518,8 @@ let solids = [];
 let coins = [], slimes = [], birds = [], carrots = [], trees = [], waters = [];
 let fishes = [], waterPlants = []; // 물고기 적 + 수초 장식
 let quicksands = [], quickSet = new Set(); // 모래늪(유사): 빠지면 서서히 가라앉아요!
+let sun = null;      // 분노한 태양 (마리오3 오마주): 따라오다가 급강하 공격!
+let tornados = [];   // 회오리: 닿으면 하늘 높이 붕~ 날아가요
 let ladders = [], ladderSet = new Set();
 let swimCells = [], swimSet = new Set();
 let springs = [], platforms = [], crumbles = [], crumbleMap = new Map(), checkpoints = [];
@@ -556,6 +558,7 @@ function parseLevel() {
   solids = []; coins = []; slimes = []; birds = []; carrots = []; trees = []; waters = [];
   fishes = []; waterPlants = [];
   quicksands = []; quickSet = new Set();
+  sun = null; tornados = [];
   ladders = []; ladderSet = new Set(); swimCells = []; swimSet = new Set();
   springs = []; platforms = []; crumbles = []; crumbleMap = new Map(); checkpoints = [];
   decors = []; cacti = []; runes = []; skies = [];
@@ -607,6 +610,10 @@ function parseLevel() {
       if (ch === "w") waters.push({ tx, ty });
       // 모래늪: 밟으면 서서히 가라앉는 위험한 모래 (사막 월드의 명물!)
       if (ch === "q") { quicksands.push({ tx, ty }); quickSet.add(tx + "," + ty); }
+      // 분노한 태양: 레벨 중반까진 따라만 오다가, 지나가면 급강하 공격!
+      if (ch === "A") sun = { x: px, y: py, alive: true, state: "follow", t: 0, hp: 3, hurtT: 0, sx: 0, sy: 0, ex: 0, cd: 0 };
+      // 회오리: 닿으면 위로 붕~! (위험이자 도구 - 넓은 구멍을 건너는 열쇠)
+      if (ch === "T") tornados.push({ x: px + 1, y: py - 32, w: 14, h: 46, phase: hash(tx * 7) % 100, cd: 0 });
       if (ch === "L") { ladders.push({ tx, ty }); ladderSet.add(tx + "," + ty); }
       if (ch === "W") { swimCells.push({ tx, ty }); swimSet.add(tx + "," + ty); }
       if (ch === "S") springs.push({ x: px, y: py, anim: 0 });
@@ -1125,6 +1132,18 @@ function meleeAttack() {
   for (const f of fishes) if (f.alive && overlap(range, f)) { f.alive = false; game.score += 250; spawnSparkle(f.x + 7, f.y + 5, "#6fb9ff"); }
   for (const s of shooters) if (s.alive && s.squash === 0 && overlap(range, s)) { s.squash = 1; game.score += 250; spawnSparkle(s.x + 6, s.y + 5, "#ff4b4b"); }
   if (boss && boss.alive && boss.hurtT === 0 && overlap(range, boss)) damageBoss();
+  // 급강하하는 태양을 검으로 맞받아치기! (간지 폭발)
+  if (sun && sun.alive && sun.hurtT === 0 && overlap(range, { x: sun.x - 6, y: sun.y - 6, w: 12, h: 12 })) {
+    sun.hp--; sun.hurtT = 20;
+    SFX.bossHurt();
+    spawnSparkle(sun.x, sun.y, "#ffd447");
+    if (sun.hp <= 0) {
+      sun.alive = false;
+      game.score += 1000;
+      SFX.bossDie();
+      for (let i = 0; i < 16; i++) spawnSparkle(sun.x + (Math.random() - 0.5) * 20, sun.y + (Math.random() - 0.5) * 20, "#ffd447");
+    }
+  }
 }
 
 function updateShots() {
@@ -1167,6 +1186,20 @@ function updateShots() {
     if (boss && boss.alive && boss.hurtT === 0 && overlap({ x: sh.x, y: sh.y, w: 4, h: 4 }, boss)) {
       sh.life = 0;
       damageBoss();
+    }
+    // 분노한 태양도 총으로 잡을 수 있어요! (3발 명중 = 1000점)
+    if (sun && sun.alive && sun.hurtT === 0 &&
+        overlap({ x: sh.x, y: sh.y, w: 4, h: 4 }, { x: sun.x - 6, y: sun.y - 6, w: 12, h: 12 })) {
+      if (!sh.pierce) sh.life = 0;
+      sun.hp--; sun.hurtT = 20;
+      SFX.bossHurt();
+      spawnSparkle(sun.x, sun.y, "#ffd447");
+      if (sun.hp <= 0) {
+        sun.alive = false;
+        game.score += 1000;
+        SFX.bossDie();
+        for (let i = 0; i < 16; i++) spawnSparkle(sun.x + (Math.random() - 0.5) * 20, sun.y + (Math.random() - 0.5) * 20, "#ffd447");
+      }
     }
   }
   shots = shots.filter((sh) => sh.life > 0);
@@ -1317,6 +1350,70 @@ function updateShooters() {
     }
   }
   enemyShots = enemyShots.filter((es) => es.life > 0);
+}
+
+// 분노한 태양: 전반부엔 하늘에서 따라만 와요. 레벨 절반을 넘는 순간... 돌변!
+function updateSun() {
+  if (!sun || !sun.alive) return;
+  sun.hurtT = Math.max(0, sun.hurtT - 1);
+  sun.t++;
+
+  if (sun.state === "follow") {
+    // 플레이어 살짝 앞에서 두둥실 (아직은 얌전...)
+    const targetX = player.x + 40;
+    sun.x += (targetX - sun.x) * 0.04;
+    sun.y = 26 + Math.sin(sun.t / 30) * 3;
+    // 레벨 절반을 지나면 분노 모드!
+    if (player.x > levelW * TILE * 0.5) { sun.state = "windup"; sun.t = 0; SFX.bossRoar(); }
+
+  } else if (sun.state === "windup") {
+    // 부들부들 떨며 조준 (도망칠 시간 1초!)
+    sun.x += Math.sin(sun.t * 1.3) * 1.5;
+    if (sun.t > 55) {
+      sun.state = "dive"; sun.t = 0;
+      sun.sx = sun.x; sun.sy = sun.y;
+      const dir = player.x >= sun.x ? 1 : -1;
+      // 플레이어를 지나쳐 가는 U자 급강하 (너무 멀면 260px까지만 - 공정하게!)
+      sun.ex = sun.sx + Math.max(-260, Math.min(260, player.x + dir * 50 - sun.sx));
+    }
+
+  } else if (sun.state === "dive") {
+    // U자 곡선: 내려왔다가 다시 솟아올라요
+    const p01 = Math.min(1, sun.t / 75);
+    sun.x = sun.sx + (sun.ex - sun.sx) * p01;
+    sun.y = sun.sy + (142 - sun.sy) * Math.sin(Math.PI * p01);
+    if (p01 >= 1) { sun.state = "cool"; sun.t = 0; }
+
+  } else if (sun.state === "cool") {
+    // 다시 하늘로... 그리고 또 조준 (반복!)
+    const targetX = player.x - 60;
+    sun.x += (targetX - sun.x) * 0.03;
+    sun.y += (26 - sun.y) * 0.06;
+    if (sun.t > 100) { sun.state = "windup"; sun.t = 0; }
+  }
+
+  // 태양에 닿으면 아야! (무적이면 무시)
+  if (!player.dying && player.invincible === 0 &&
+      overlap(player, { x: sun.x - 6, y: sun.y - 6, w: 12, h: 12 })) {
+    hurtPlayer();
+  }
+}
+
+// 회오리: 닿으면 하늘 높이 붕~! 잘 쓰면 넓은 구멍도 건너는 바람 엘리베이터
+function updateTornados() {
+  for (const tn of tornados) {
+    tn.cd = Math.max(0, tn.cd - 1);
+    if (tn.cd === 0 && !player.dying && !player.climbing && overlap(player, tn)) {
+      tn.cd = 30;
+      player.vy = -7.8;                 // 스프링(-7.7)만큼 높이!
+      player.noCut = true;              // 끝까지 올라가요
+      // 진행 방향으로 밀어줘요: 천천히 들어와도 멀리 날아가게
+      if (Math.abs(player.vx) < 2) player.vx = player.face * 2.6;
+      else player.vx *= 1.3;
+      SFX.spring();
+      for (let i = 0; i < 6; i++) spawnSparkle(tn.x + 7, tn.y + tn.h - i * 8, "#cfcfcf");
+    }
+  }
 }
 
 function damageBoss() {
@@ -1674,6 +1771,19 @@ function draw() {
     drawSprite(IMG.penemies, fr[0], fr[1], f.x - 1 - cam, f.y - 3, f.dir > 0);
   }
 
+  // 18.3) 회오리: 아래는 좁고 위는 넓은 소용돌이가 빙글빙글
+  for (const tn of tornados) {
+    const cxx = tn.x + tn.w / 2 - cam;
+    for (let i = 0; i < 6; i++) {
+      const w = 8 + i * 4;                                   // 위로 갈수록 넓게
+      const yy = tn.y + tn.h - 8 - i * 7;
+      const off = Math.sin(game.time / 4 + i * 1.4 + tn.phase) * 3;
+      ctx.strokeStyle = i % 2 ? "#d8d8d8" : "#8f8f8f";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(Math.round(cxx - w / 2 + off), Math.round(yy), w, 5);
+    }
+  }
+
   // 18.4) NPC (평화로운 대화 캐릭터)
   for (const n of npcs) {
     n.anim += 0.03;
@@ -1773,6 +1883,36 @@ function draw() {
     ctx.fillRect(Math.round(p.x - cam), Math.round(p.y), 2, 2);
   }
   ctx.globalAlpha = 1;
+
+  // 23) 분노한 태양: 빙글빙글 광선 + 화난 얼굴 (맞으면 빨갛게 번쩍)
+  if (sun && sun.alive) {
+    const sxx = Math.round(sun.x - cam), syy = Math.round(sun.y);
+    const angry = sun.state !== "follow";
+    const flash = sun.hurtT > 0 && Math.floor(game.time / 3) % 2 === 0;
+    ctx.strokeStyle = flash ? "#fff" : angry ? "#ff6a3a" : "#ffd447";
+    ctx.lineWidth = 1.5;
+    // 광선 8개 (분노하면 빨리 돌아요)
+    const spin = game.time / (angry ? 6 : 20);
+    for (let i = 0; i < 8; i++) {
+      const a = spin + (i * Math.PI) / 4;
+      ctx.beginPath();
+      ctx.moveTo(sxx + Math.cos(a) * 8, syy + Math.sin(a) * 8);
+      ctx.lineTo(sxx + Math.cos(a) * 12, syy + Math.sin(a) * 12);
+      ctx.stroke();
+    }
+    // 몸통 원
+    ctx.beginPath(); ctx.arc(sxx, syy, 7, 0, Math.PI * 2); ctx.stroke();
+    // 화난 눈썹 + 눈 + 입
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.fillRect(sxx - 4, syy - 2, 2, 2); ctx.fillRect(sxx + 2, syy - 2, 2, 2);       // 눈
+    if (angry) {
+      ctx.beginPath(); ctx.moveTo(sxx - 5, syy - 5); ctx.lineTo(sxx - 1, syy - 3); ctx.stroke();  // 눈썹 ↘
+      ctx.beginPath(); ctx.moveTo(sxx + 5, syy - 5); ctx.lineTo(sxx + 1, syy - 3); ctx.stroke();  // 눈썹 ↙
+      ctx.fillRect(sxx - 2, syy + 3, 4, 2);   // 앙다문 입
+    } else {
+      ctx.fillRect(sxx - 2, syy + 3, 4, 1);   // 무표정
+    }
+  }
 
   drawHUD();
 
@@ -1945,6 +2085,8 @@ function gameLoop() {
     updateBirds();
     updateFishes();
     updateShooters();
+    updateSun();
+    updateTornados();
     updateBoss();
     updateParticles();
     updateCamera();
