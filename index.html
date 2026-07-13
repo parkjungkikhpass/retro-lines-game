@@ -104,7 +104,14 @@ for (const [name, src] of Object.entries(IMAGE_FILES)) {
   IMG[name].src = src;
   IMG[name].onload = () => {
     loadedCount++;
-    if (loadedCount === Object.keys(IMAGE_FILES).length) { parseLevel(); requestAnimationFrame(gameLoop); }
+    if (loadedCount === Object.keys(IMAGE_FILES).length) {
+      parseLevel();
+      // 주소 뒤에 ?stage=3-2 처럼 붙이면 그 스테이지로 바로 시작! (공유 링크용)
+      const stageParam = new URLSearchParams(location.search).get("stage");
+      const idx = STAGES.findIndex((s) => s.id === stageParam);
+      if (idx >= 0) startStage(idx);
+      requestAnimationFrame(gameLoop);
+    }
   };
 }
 
