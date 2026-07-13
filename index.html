@@ -205,19 +205,19 @@ function zoneImg() { return IMG[zoneAt().img] || IMG.env; }
    S: 스프링   M: 좌우 발판   V: 상하 발판   !: 무너지는 발판   C: 체크포인트 */
 
 const STAGES = [
-  { id: "1-1", title: "점프의 숲", zone: 0, map: [
+  { id: "1-1", title: "뱀들의 터널", zone: 0, swordOnly: true, snakeWaves: true, map: [
+    "################################################################################################################################################################################################################################################",
+    "################################################################################################################################################################################################################################################",
+    "################################################################################################################################################################################################################################################",
+    "################################################################################################################################################################################################################################################",
+    "                    ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##",
+    "                    ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##            ##",
     "",
-    "",
-    "",
-    "",
-    "                                                                                                   b",
-    "                                                                                                            #################",
-    "                                                                                             o                                 ###############",
-    "                                                                                          o                                                               oo",
-    "                                                            o               oo              ###                     o     o        oo    oo              o  o        oo    j         oooo           F",
-    "  P  Y      e   t   K                        oou           o o      e   t  o  o Z       #######  e  e  C        e      e                       C             #######o  o  e       t         N    t",
-    "#############################################  ############   #############    ####################################################  ####  ##############    #######    ################################",
-    "#############################################  ############   #############    ####################################################  ####  ##############    #######    ################################",
+    "                o         o    o    o         o         o    j    o         o         o    p    o         o         o    k    o         o         o    j    o         o         o    p    o         o         o    o    o",
+    "           o o                ###                           ###                           ###                           ###                           ###                           ###                           ###             ooo      F",
+    "  P  K  Y         s     s    s     s      s  u         s C K        s           s              s         u    s      C K     s              s                   s    u         s C K               s         s                        N",
+    "################################################################################################################################################################################################################################################",
+    "################################################################################################################################################################################################################################################",
   ] },
   { id: "1-2", title: "멈추면 떨어져!", zone: 0, map: [
     "",
@@ -990,8 +990,10 @@ function updatePlayer() {
   player.shootCd = Math.max(0, player.shootCd - 1);
   player.atkPose = Math.max(0, player.atkPose - 1);
   player.meleeT = Math.max(0, player.meleeT - 1);
-  // noShoot 스테이지(심해)에선 공격 불가 - 오직 회피 실력만!
-  if ((keys.KeyX || keys.KeyZ) && player.shootCd === 0 && !player.climbing && !STAGES[stageIndex].noShoot) {
+  // noShoot 스테이지(심해)=공격 불가 / swordOnly 스테이지(뱀터널)=검 없인 공격 불가!
+  if ((keys.KeyX || keys.KeyZ) && player.shootCd === 0 && !player.climbing &&
+      !STAGES[stageIndex].noShoot &&
+      (!STAGES[stageIndex].swordOnly || player.weapon === "sword")) {
     if (player.weapon === "sword") {
       // 검: 발사체 없이 앞쪽을 크게 휘둘러 근접 처치 (연타 빠름)
       player.meleeT = 10;
@@ -1270,6 +1272,24 @@ function updateGimmicks() {
 
 /* ===== 11. 적과 보스 ===== */
 
+// 뱀 웨이브: 화면 밖에서 뱀이 끝없이 스폰! (진행할수록 빨라지고, 가끔 뒤에서도)
+function updateSnakeWaves() {
+  if (!STAGES[stageIndex].snakeWaves || player.dying) return;
+  if (player.x > (levelW - 24) * TILE) return; // 골인 구간에선 웨이브 종료
+  const aliveWave = slimes.filter((s) => s.alive && s.kind === "snake").length;
+  // 깊이 들어갈수록 스폰 간격이 짧아져요 (56 → 26프레임)
+  const interval = Math.max(26, 56 - Math.floor(player.x / (40 * TILE)) * 8);
+  if (game.time % interval === 0 && aliveWave < 26) {
+    const fromLeft = Math.floor(game.time / interval) % 4 === 3; // 4번에 1번은 등 뒤에서!
+    const sx = fromLeft ? game.camX - 24 : game.camX + VIEW_W + 24;
+    if (sx > 16 && sx < (levelW - 2) * TILE) {
+      slimes.push({ x: sx, y: 7 * TILE, w: 12, h: 10, vx: 0, dir: fromLeft ? 1 : -1,
+                    speed: 0.5 + Math.random() * 0.3, alive: true, squash: 0, anim: 0,
+                    kind: "snake", wave: true });
+    }
+  }
+}
+
 function updateSlimes() {
   for (const s of slimes) {
     if (!s.alive) continue;
@@ -1278,6 +1298,8 @@ function updateSlimes() {
       if (s.squash > 25) s.alive = false;
       continue;
     }
+    // 웨이브 뱀은 주기적으로 플레이어 쪽으로 방향을 다시 잡아요 (몰려드는 느낌!)
+    if (s.wave && game.time % 50 === 0) s.dir = player.x < s.x ? -1 : 1;
     s.vx = s.speed * s.dir;
     const aheadX = s.dir < 0 ? s.x - 1 : s.x + s.w;
     const cliff = !solidAt(aheadX, s.y + s.h + 2);
@@ -2197,6 +2219,7 @@ function gameLoop() {
     updateGimmicks();  // 발판이 먼저 움직이고
     updatePlayer();    // 플레이어가 따라가요
     updateShots();
+    updateSnakeWaves();
     updateSlimes();
     updateBirds();
     updateFishes();
